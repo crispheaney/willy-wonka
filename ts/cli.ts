@@ -2,7 +2,7 @@
 import { program } from 'commander';
 import * as anchor from '@project-serum/anchor';
 import idl from "./idl/candy_machine.json";
-import {Idl, Program} from "@project-serum/anchor";
+import {Idl, Program, ProgramAccount} from "@project-serum/anchor";
 import fs from "fs";
 import { MintLayout, Token, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
@@ -250,10 +250,20 @@ program.command("search")
         const candyMachineProgram = new Program(idl as Idl, candyMachineProgramID, provider);
 
         const candyMachines = await candyMachineProgram.account.candyMachine.all();
+        const configPublicKeys = candyMachines.map(candyMachine => candyMachine.account.config);
+        const configBuffers = await connection.getMultipleAccountsInfo(configPublicKeys);
+        const configMap = configBuffers.reduce((map, configBuffer) => {
+            if (configBuffer?.data) {
+                const config = candyMachineProgram.coder.accounts.decode("Config", configBuffer?.data);
+                map[config.data.uuid] = configBuffer;
+            }
+            return map;
+        }, {});
 
         for (let candyMachine of candyMachines) {
             const numberOfItems = candyMachine.account.data.itemsAvailable;
-            const config = await connection.getAccountInfo(candyMachine.account.config);
+            const configuuid = candyMachine.account.config.toBase58().slice(0, 6);
+            const config = configMap[configuuid];
 
             if (!config || !config.data) {
                 continue;
