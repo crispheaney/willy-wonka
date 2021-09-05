@@ -4,7 +4,7 @@ import * as anchor from '@project-serum/anchor';
 import idl from "./idl/candy_machine.json";
 import {Idl, Program, ProgramAccount} from "@project-serum/anchor";
 import fs from "fs";
-import { MintLayout, Token, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import {MintLayout, Token, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, AccountInfo} from '@solana/spl-token';
 import {
     Blockhash,
     Commitment,
@@ -187,49 +187,6 @@ interface BlockhashAndFeeCalculator {
     blockhash: Blockhash;
     feeCalculator: FeeCalculator;
 }
-export const sendTransactionWithRetryWithKeypair = async (
-    connection: Connection,
-    wallet: Keypair,
-    instructions: TransactionInstruction[],
-    signers: Keypair[],
-    commitment: Commitment = 'singleGossip',
-    includesFeePayer: boolean = false,
-    block?: BlockhashAndFeeCalculator,
-    beforeSend?: () => void,
-) => {
-    let transaction = new Transaction();
-    instructions.forEach(instruction => transaction.add(instruction));
-    transaction.recentBlockhash = (
-        block || (await connection.getRecentBlockhash(commitment))
-    ).blockhash;
-
-    if (includesFeePayer) {
-        transaction.setSigners(...signers.map(s => s.publicKey));
-    } else {
-        transaction.setSigners(
-            // fee payed by the wallet owner
-            wallet.publicKey,
-            ...signers.map(s => s.publicKey),
-        );
-    }
-
-    if (signers.length > 0) {
-        transaction.partialSign(...signers);
-    }
-
-    transaction.sign(wallet);
-
-    if (beforeSend) {
-        beforeSend();
-    }
-
-    const { txid, slot } = await sendSignedTransaction({
-        connection,
-        signedTransaction: transaction,
-    });
-
-    return { txid, slot };
-};
 
 program.command("search")
     .argument('<pattern>', "The pattern used to identify candy machine configs")
@@ -254,16 +211,16 @@ program.command("search")
         const configBuffers = await connection.getMultipleAccountsInfo(configPublicKeys);
         const configMap = configBuffers.reduce((map, configBuffer) => {
             if (configBuffer?.data) {
-                const config = candyMachineProgram.coder.accounts.decode("Config", configBuffer?.data);
-                map[config.data.uuid] = configBuffer;
+                const config : any = candyMachineProgram.coder.accounts.decode("Config", configBuffer?.data);
+                map.set(config.data.uuid, configBuffer);
             }
             return map;
-        }, {});
+        }, new Map());
 
         for (let candyMachine of candyMachines) {
             const numberOfItems = candyMachine.account.data.itemsAvailable;
             const configuuid = candyMachine.account.config.toBase58().slice(0, 6);
-            const config = configMap[configuuid];
+            const config = configMap.get(configuuid);
 
             if (!config || !config.data) {
                 continue;
@@ -288,12 +245,7 @@ program.command("wen")
     .option('-u, --url <url>', 'rpc url e.g. https://api.devnet.solana.com')
     .action(async (candyMachinePublicKeyString, options) => {
         const { keypair, url } = options;
-        let candyMachinePublicKey : anchor.web3.PublicKey;
-        try {
-            candyMachinePublicKey = new anchor.web3.PublicKey(candyMachinePublicKeyString);
-        } catch (e) {
-            console.error(`Invalid candy-machine ${candyMachinePublicKeyString}`);
-        }
+        const candyMachinePublicKey = new anchor.web3.PublicKey(candyMachinePublicKeyString);
 
         const walletKey = anchor.web3.Keypair.fromSecretKey(
             new Uint8Array(JSON.parse(fs.readFileSync(keypair).toString())),
@@ -306,7 +258,7 @@ program.command("wen")
         });
         const candyMachineProgram = new Program(idl as Idl, candyMachineProgramID, provider);
 
-        const candyMachine = await candyMachineProgram.account.candyMachine.fetch(
+        const candyMachine : any = await candyMachineProgram.account.candyMachine.fetch(
             candyMachinePublicKey
         );
 
@@ -328,13 +280,7 @@ program.command("mint")
     .option('-u, --url <url>', 'rpc url e.g. https://api.devnet.solana.com')
     .action(async (candyMachinePublicKeyString, options) => {
         const { keypair, url } = options;
-        let candyMachinePublicKey : anchor.web3.PublicKey;
-        try {
-            candyMachinePublicKey = new anchor.web3.PublicKey(candyMachinePublicKeyString);
-        } catch (e) {
-            console.error(`Invalid candy-machine ${candyMachinePublicKeyString}`);
-        }
-
+        const candyMachinePublicKey = new anchor.web3.PublicKey(candyMachinePublicKeyString);
         const walletKey = anchor.web3.Keypair.fromSecretKey(
             new Uint8Array(JSON.parse(fs.readFileSync(keypair).toString())),
         );
