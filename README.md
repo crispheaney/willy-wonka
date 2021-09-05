@@ -20,7 +20,7 @@ willy-wonka search -k /Users/crisp/.config/solana/id.json -u https://api.mainnet
 ```shell
  willy-wonka wen -k /Users/crisp/.config/solana/id.json -u https://api.devnet.solana.com G5kxQtRjE9saZruweUbbwHhaJi4okRoxbGNQVrh94oCN
 ```
-3) Start mingtin scripts ~X minutes before drop
+3) Start minting scripts ~X minutes before drop
 ```shell
 willy-wonka mint -k /Users/crisp/.config/solana/id.json -u https://api.devnet.solana.com G5kxQtRjE9saZruweUbbwHhaJi4okRoxbGNQVrh94oCN
 ```
