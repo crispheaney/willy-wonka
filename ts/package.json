@@ -1,0 +1,19 @@
+{
+  "name": "willy-wonka",
+  "version": "0.1.0",
+  "bin": {
+    "willy-wonka": "./build/cli.js"
+  },
+  "scripts": {},
+  "author": "crispheaney",
+  "license": "ISC",
+  "main": "cli.js",
+  "description": "",
+  "dependencies": {
+    "@project-serum/anchor": "0.13.2",
+    "@solana/spl-token": "^0.1.8",
+    "@types/node": "^16.7.10",
+    "cli-color": "^2.0.0",
+    "commander": "^8.1.0"
+  }
+}
