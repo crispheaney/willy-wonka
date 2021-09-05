@@ -208,7 +208,16 @@ program.command("search")
 
         const candyMachines = await candyMachineProgram.account.candyMachine.all();
         const configPublicKeys = candyMachines.map(candyMachine => candyMachine.account.config);
-        const configBuffers = await connection.getMultipleAccountsInfo(configPublicKeys);
+
+        let configBuffers : any[] = [];
+        let configsFetched = 0;
+        const chunkSize = 99;
+        while (configsFetched < configPublicKeys.length) {
+            const nextConfigBuggers = await connection.getMultipleAccountsInfo(configPublicKeys.slice(configsFetched, chunkSize));
+            configBuffers = [...configBuffers, ...nextConfigBuggers];
+            configsFetched += chunkSize;
+        }
+
         const configMap = configBuffers.reduce((map, configBuffer) => {
             if (configBuffer?.data) {
                 const config : any = candyMachineProgram.coder.accounts.decode("Config", configBuffer?.data);
