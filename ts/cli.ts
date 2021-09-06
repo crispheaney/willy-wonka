@@ -316,10 +316,6 @@ program.command("mint")
         let currentTimestamp = Date.now();
         const todayDate = new Date();
         console.log(`Today's date: ${todayDate.toString()}`);
-        if (currentTimestamp > liveDateMillisecondTimestamp) {
-            console.log(`Candy machine live date in the past.`);
-            return;
-        }
 
         const itemsAvailable = candyMachine.data.itemsAvailable;
         console.log(`Items available: ${itemsAvailable}`);
