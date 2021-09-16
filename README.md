@@ -14,7 +14,7 @@ npm link
 ### Use
 1) Find the public key for the candy machine you want to mint
 ```shell
-willy-wonka search -k /Users/crisp/.config/solana/id.json -u https://api.mainnet-beta.solana.com "pixel dude*"
+willy-wonka search -k /Users/crisp/.config/solana/id.json -u https://api.devnet.solana.com "pixel dude*"
 ```
 2) Check when it drops
 ```shell
