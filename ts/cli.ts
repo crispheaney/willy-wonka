@@ -212,10 +212,17 @@ program.command("search")
         let configBuffers : any[] = [];
         let configsFetched = 0;
         const chunkSize = 99;
+        console.log(`Number of configs ${configPublicKeys.length}`);
         while (configsFetched < configPublicKeys.length) {
+            console.log(`Fetching configs ${configsFetched} through ${configsFetched + chunkSize}`);
+
             const nextConfigBuggers = await connection.getMultipleAccountsInfo(configPublicKeys.slice(configsFetched, chunkSize));
             configBuffers = [...configBuffers, ...nextConfigBuggers];
             configsFetched += chunkSize;
+
+            const sleepDuration = 1000;
+            console.log(`Sleeping for ${sleepDuration} ms to avoid rate limit`)
+            await new Promise(r => setTimeout(r, sleepDuration));
         }
 
         const configMap = configBuffers.reduce((map, configBuffer) => {
