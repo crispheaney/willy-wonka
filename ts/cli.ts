@@ -394,17 +394,16 @@ program.command("mint")
             });
         }
 
-        const threeSeconds = 3000;
+        const fiveHundredMs = 500;
         const intervalId = setInterval(async () => {
             currentTimestamp = Date.now();
             const millisecondsUntilDrop = liveDateMillisecondTimestamp - currentTimestamp;
             console.log("Time until drop:", millisecondsUntilDrop / 60000, "minutes");
-            if (currentTimestamp - threeSeconds >= liveDateMillisecondTimestamp) {
-                console.log("Five seconds until the drop");
+            if (currentTimestamp - fiveHundredMs >= liveDateMillisecondTimestamp) {
+                console.log("Five ms until the drop");
                 try {
                     const tx = await mintNFT();
                     console.log(`Success! Tx: ${tx}`);
-                    clearInterval(intervalId);
                 } catch (e) {
                     console.log(e);
                     console.log("Let's try again");
